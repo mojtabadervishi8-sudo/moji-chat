@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat App</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #0b1220;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* باکس ورود */
+    h2 {
+      text-align: center;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    #username {
+      padding: 10px;
+      width: 200px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 12px;
+      border: none;
+      background: #22c55e;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    /* کل چت */
+    #chat {
+      width: 380px;
+      height: 600px;
+      background: #111827;
+      border-radius: 15px;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    }
+
+    /* پیام‌ها */
+    #messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 0;
+    }
+
+    #messages li {
+      padding: 10px;
+      border-radius: 12px;
+      max-width: 70%;
+      word-break: break-word;
+      font-size: 14px;
+    }
+
+    .me {
+      background: #22c55e;
+      align-self: flex-end;
+      color: black;
+    }
+
+    .other {
+      background: #374151;
+      align-self: flex-start;
+      color: white;
+    }
+
+    /* input پایین */
+    #chat div {
+      display: flex;
+      padding: 10px;
+      gap: 8px;
+      background: #1f2937;
+    }
+
+    #msg {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+    }
+.footer {
+  text-align: center;
+  color: white;
+  font-size: 12px;
+  padding: 10px;
+  opacity: 0.7;
+  position: fixed;
+  bottom: 5px;
+  width: 100%;
+}
+  </style>
+</head>
+
+<body>
+
+<div>
+
+  <h2>Moji Chat</h2>
+
+  <input id="username" placeholder="Enter your name" />
+  <button onclick="joinChat()">Join</button>
+
+  <div id="chat">
+
+    <ul id="messages"></ul>
+
+    <div>
+      <input id="msg" placeholder="Type message" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+<script>
+  const socket = io("http://localhost:3000");
+
+  function joinChat() {
+    const username = document.getElementById("username").value;
+    if (!username) return alert("Enter name");
+
+    localStorage.setItem("username", username);
+    socket.emit("join", username);
+
+    document.getElementById("chat").style.display = "flex";
+  }
+
+  function sendMessage() {
+    const msg = document.getElementById("msg").value;
+    socket.emit("sendMessage", msg);
+    document.getElementById("msg").value = "";
+  }
+
+  socket.on("message", (data) => {
+    const li = document.createElement("li");
+
+    const myName = localStorage.getItem("username");
+
+    li.classList.add(data.user === myName ? "me" : "other");
+    li.textContent = data.user + ": " + data.text;
+
+    document.getElementById("messages").appendChild(li);
+  });
+
+  window.onload = () => {
+    const username = localStorage.getItem("username");
+    if (username) {
+      socket.emit("join", username);
+      document.getElementById("chat").style.display = "flex";
+    }
+  };
+
+</script>
+<div class="footer">
+ساخته شده توسط مجتبی درویشی
+</div>
+</body>
+</html>
